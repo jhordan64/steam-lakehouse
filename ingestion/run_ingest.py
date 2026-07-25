@@ -29,9 +29,13 @@ from typing import Any, Iterable
 import pyarrow as pa
 import pyarrow.parquet as pq
 from databricks.sdk import WorkspaceClient
+from dotenv import load_dotenv
 
 from .igdb import IgdbClient
 from .steam import SteamClient
+
+# Carga las variables del .env (credenciales de Databricks, IGDB, etc.)
+load_dotenv()
 
 logging.basicConfig(
     level=logging.INFO,
