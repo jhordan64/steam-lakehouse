@@ -107,9 +107,10 @@ def ingest_player_counts() -> None:
 
 
 def ingest_app_list() -> None:
+    api_key = os.environ["STEAM_API_KEY"]
     client = SteamClient(USER_AGENT)
     try:
-        write_and_upload(client.get_app_list(), "steam_app_list")
+        write_and_upload(client.get_app_list(api_key), "steam_app_list")
     finally:
         client.close()
 

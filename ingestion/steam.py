@@ -38,19 +38,53 @@ class SteamClient:
         self._web.close()
         self._store.close()
 
-    def get_app_list(self) -> list[dict[str, Any]]:
-        """Catalogo completo de apps. ~200k filas, incluye DLC y soundtracks.
+    def get_app_list(self, api_key: str) -> list[dict[str, Any]]:
+        """Catalogo completo de apps desde IStoreService/GetAppList (paginado).
 
-        Se ingesta una vez al dia, no cada hora.
+        El endpoint viejo ISteamApps/GetAppList fue deprecado por Valve.
+        Este lo reemplaza: pide la key y devuelve resultados paginados de
+        50.000 en 50.000, usando last_appid como puntero a la pagina siguiente.
         """
-        payload = self._web.get("/ISteamApps/GetAppList/v2/")
-        apps = payload.get("applist", {}).get("apps", [])
-        logger.info("GetAppList devolvio %s apps", len(apps))
+        apps: list[dict[str, Any]] = []
+        last_appid: int | None = None
         ingested_at = _now()
-        return [
-            {"appid": app["appid"], "name": app.get("name"), "_ingested_at": ingested_at}
-            for app in apps
-        ]
+
+        while True:
+            params: dict[str, Any] = {
+                "key": api_key,
+                "include_games": "true",
+                "include_dlc": "false",
+                "max_results": 50000,
+            }
+            if last_appid is not None:
+                params["last_appid"] = last_appid
+
+            payload = self._web.get(
+                "/IStoreService/GetAppList/v1/", params=params
+            )
+            response = payload.get("response", {})
+            page = response.get("apps", [])
+
+            for app in page:
+                apps.append(
+                    {
+                        "appid": app["appid"],
+                        "name": app.get("name"),
+                        "_ingested_at": ingested_at,
+                    }
+                )
+
+            logger.info("GetAppList: pagina de %s apps (total %s)", len(page), len(apps))
+
+            # Si hay mas resultados, la API devuelve have_more_results y el
+            # ultimo appid procesado, que usamos como puntero de la siguiente pagina.
+            if response.get("have_more_results"):
+                last_appid = response.get("last_appid")
+            else:
+                break
+
+        logger.info("GetAppList completo: %s apps", len(apps))
+        return apps
 
     def get_current_players(self, appid: int) -> dict[str, Any]:
         """Jugadores concurrentes de un juego en este instante."""
