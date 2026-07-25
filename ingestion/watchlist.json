@@ -1,0 +1,25 @@
+{
+  "_comment": "Lista curada de appids de Steam a monitorear cada hora. Empieza con 20-50 y crece cuando el pipeline este estable.",
+  "appids": [
+    730,
+    570,
+    578080,
+    1172470,
+    1085660,
+    271590,
+    1245620,
+    252490,
+    440,
+    431960,
+    1091500,
+    292030,
+    1174180,
+    381210,
+    236390,
+    550,
+    304930,
+    221100,
+    218620,
+    1938090
+  ]
+}

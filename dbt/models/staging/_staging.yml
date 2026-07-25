@@ -1,0 +1,55 @@
+version: 2
+
+models:
+  - name: stg_steam__player_counts
+    description: >
+      Lecturas horarias de jugadores concurrentes, tipadas y deduplicadas.
+      Grano: un registro por (appid, hora).
+    columns:
+      - name: appid
+        data_tests:
+          - not_null
+      - name: measured_at_hour
+        data_tests:
+          - not_null
+      - name: player_count
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 5000000
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [appid, measured_at_hour]
+
+  - name: stg_steam__apps
+    description: "Una fila por appid del catalogo de Steam."
+    columns:
+      - name: appid
+        data_tests: [not_null, unique]
+      - name: app_name
+        data_tests: [not_null]
+
+  - name: stg_igdb__games
+    description: "Metadata de IGDB, una fila por appid de Steam."
+    columns:
+      - name: appid
+        data_tests: [not_null, unique]
+      - name: igdb_rating
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 100
+              row_condition: "igdb_rating is not null"
+
+  - name: stg_steam__review_summary
+    description: "Resumen de reseñas por juego con ratio positivo calculado."
+    columns:
+      - name: appid
+        data_tests: [not_null, unique]
+      - name: positive_ratio
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 100
+              row_condition: "positive_ratio is not null"

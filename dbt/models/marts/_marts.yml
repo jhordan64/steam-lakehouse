@@ -1,0 +1,55 @@
+version: 2
+
+models:
+  - name: dim_game
+    description: >
+      Dimension conforme de juego. Combina catalogo de Steam, metadata de IGDB
+      y resumen de reseñas. Grano: un registro por appid.
+    columns:
+      - name: game_key
+        description: Clave surrogada estable derivada del appid.
+        data_tests: [not_null, unique]
+      - name: appid
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('stg_steam__apps')
+              field: appid
+      - name: game_name
+        data_tests: [not_null]
+
+  - name: fct_player_activity_hourly
+    description: >
+      Hechos de actividad horaria por juego, con delta y media movil de 24h.
+      Grano: un registro por (game_key, hora).
+    columns:
+      - name: game_key
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('dim_game')
+              field: game_key
+      - name: measured_at_hour
+        data_tests: [not_null]
+      - name: player_count
+        data_tests: [not_null]
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [game_key, measured_at_hour]
+
+  - name: agg_game_daily
+    description: "Agregado diario por juego. Es la tabla que consume Power BI."
+    columns:
+      - name: peak_players
+        data_tests: [not_null]
+      - name: hours_observed
+        description: >
+          Sirve como control de cobertura: si baja de 24 hubo huecos de ingesta.
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+              max_value: 24
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [game_key, measured_date]

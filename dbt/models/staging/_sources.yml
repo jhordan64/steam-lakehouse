@@ -1,0 +1,38 @@
+version: 2
+
+sources:
+  - name: bronze
+    description: >
+      Capa bronze: copia fiel de lo que devolvieron las APIs oficiales,
+      cargada por Auto Loader. Append-only, nunca se edita.
+    database: "{{ env_var('DATABRICKS_CATALOG', 'steam_lakehouse') }}"
+    schema: bronze
+
+    tables:
+      - name: steam_player_counts
+        description: Snapshot horario de jugadores concurrentes por juego.
+        loaded_at_field: _loaded_at
+        freshness:
+          warn_after: {count: 3, period: hour}
+          error_after: {count: 12, period: hour}
+        columns:
+          - name: appid
+            description: Identificador del juego en Steam.
+            data_tests: [not_null]
+          - name: player_count
+            description: Jugadores conectados en el momento de la lectura.
+
+      - name: steam_app_list
+        description: Catalogo completo de apps de Steam (incluye DLC y soundtracks).
+        loaded_at_field: _loaded_at
+        freshness:
+          warn_after: {count: 2, period: day}
+          error_after: {count: 7, period: day}
+
+      - name: steam_review_summary
+        description: Resumen agregado de reseñas por juego.
+        loaded_at_field: _loaded_at
+
+      - name: igdb_games
+        description: Metadata enriquecida desde IGDB, cruzada por appid de Steam.
+        loaded_at_field: _loaded_at

@@ -1,0 +1,37 @@
+name: steam_lakehouse
+version: "1.0.0"
+config-version: 2
+
+profile: steam_lakehouse
+
+model-paths: ["models"]
+snapshot-paths: ["snapshots"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  steam_lakehouse:
+    +file_format: delta
+    +persist_docs:
+      relation: true
+      columns: true
+    staging:
+      +materialized: view
+      +schema: silver
+    marts:
+      +materialized: table
+      +schema: gold
+
+snapshots:
+  steam_lakehouse:
+    +target_schema: silver
+    +file_format: delta
+
+vars:
+  # Ventana de reproceso para modelos incrementales. Cubre reintentos y
+  # llegadas tardias sin reconstruir la tabla entera.
+  lookback_hours: 48

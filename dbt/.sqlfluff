@@ -1,0 +1,11 @@
+[sqlfluff]
+dialect = sparksql
+templater = dbt
+max_line_length = 100
+exclude_rules = ST06, RF01
+
+[sqlfluff:indentation]
+tab_space_size = 4
+
+[sqlfluff:rules:capitalisation.keywords]
+capitalisation_policy = lower

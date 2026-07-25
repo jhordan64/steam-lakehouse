@@ -1,0 +1,63 @@
+name: Ingesta
+
+on:
+  schedule:
+    # Cada hora en punto: la señal fina de jugadores concurrentes.
+    - cron: "5 * * * *"
+    # Una vez al dia: catalogo, reseñas y metadata de IGDB.
+    - cron: "20 3 * * *"
+  workflow_dispatch:
+    inputs:
+      source:
+        description: "Fuente a ingestar manualmente"
+        required: true
+        default: player_counts
+        type: choice
+        options: [player_counts, app_list, reviews, igdb_games]
+
+concurrency:
+  # Nunca dos corridas simultaneas: evita duplicados y rate limits.
+  group: ingest
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      DATABRICKS_CATALOG: ${{ vars.DATABRICKS_CATALOG }}
+      IGDB_CLIENT_ID: ${{ secrets.IGDB_CLIENT_ID }}
+      IGDB_CLIENT_SECRET: ${{ secrets.IGDB_CLIENT_SECRET }}
+      INGEST_USER_AGENT: ${{ vars.INGEST_USER_AGENT }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+
+      - name: Ingesta horaria
+        if: github.event.schedule == '5 * * * *'
+        run: python -m ingestion.run_ingest player_counts
+
+      - name: Ingesta diaria
+        if: github.event.schedule == '20 3 * * *'
+        run: |
+          python -m ingestion.run_ingest app_list
+          python -m ingestion.run_ingest reviews
+          python -m ingestion.run_ingest igdb_games
+
+      - name: Ingesta manual
+        if: github.event_name == 'workflow_dispatch'
+        run: python -m ingestion.run_ingest ${{ inputs.source }}
