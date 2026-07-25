@@ -44,11 +44,27 @@ spark.sql(f"CREATE SCHEMA IF NOT EXISTS {CATALOG}.{BRONZE_SCHEMA}")
 # COMMAND ----------
 
 
+def _has_files(path: str) -> bool:
+    """Revisa si el Volume tiene al menos un archivo antes de leerlo.
+
+    Auto Loader no puede inferir el esquema de una carpeta vacia, asi que
+    evitamos ese error saltando los datasets que aun no se han ingestado.
+    """
+    try:
+        return len(dbutils.fs.ls(path)) > 0
+    except Exception:  # la carpeta no existe todavia
+        return False
+
+
 def load_bronze(dataset: str) -> None:
     """Ingesta incremental de un dataset del Volume hacia su tabla bronze."""
     source_path = f"{VOLUME_ROOT}/{dataset}"
     target_table = f"{CATALOG}.{BRONZE_SCHEMA}.{dataset}"
     checkpoint = f"{CHECKPOINT_ROOT}/{dataset}"
+
+    if not _has_files(source_path):
+        print(f"SKIP -> {dataset} (aun sin archivos en el Volume)")
+        return
 
     stream = (
         spark.readStream.format("cloudFiles")
