@@ -99,10 +99,12 @@ for dataset_name in DATASETS:
 
 # COMMAND ----------
 
+existing = {t.name for t in spark.catalog.listTables(f"{CATALOG}.{BRONZE_SCHEMA}")}
+
 for dataset_name in DATASETS:
     table = f"{CATALOG}.{BRONZE_SCHEMA}.{dataset_name}"
-    try:
+    if dataset_name in existing:
         count = spark.table(table).count()
         print(f"{table}: {count:,} filas")
-    except Exception as error:  # noqa: BLE001
-        print(f"{table}: aun sin datos ({error})")
+    else:
+        print(f"{table}: tabla aun no creada (sin datos ingestados)")
