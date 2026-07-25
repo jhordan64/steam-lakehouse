@@ -73,18 +73,20 @@ def load_bronze(dataset: str) -> None:
         # Si el origen añade una columna nueva, el stream se reinicia y la adopta
         # en vez de fallar en silencio.
         .option("cloudFiles.schemaEvolutionMode", "addNewColumns")
-        .option("cloudFiles.partitionColumns", "dt, hour")
         .load(source_path)
         .withColumn("_source_file", F.col("_metadata.file_path"))
         .withColumn("_loaded_at", F.current_timestamp())
     )
 
-    (
+    query = (
         stream.writeStream.option("checkpointLocation", f"{checkpoint}/state")
         .option("mergeSchema", "true")
         .trigger(availableNow=True)
         .toTable(target_table)
     )
+    query.awaitTermination()  # espera a que el stream termine antes de continuar
+
+    print(f"OK -> {target_table}")
 
     print(f"OK -> {target_table}")
 
