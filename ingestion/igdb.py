@@ -67,7 +67,8 @@ class IgdbClient:
     ) -> Iterator[dict[str, Any]]:
         """Resuelve juegos de IGDB a partir de appids de Steam.
 
-        external_games.category = 1 identifica a Steam dentro de IGDB.
+        Filtra por external_game_source = 1 (Steam). El campo `category`
+        quedo obsoleto en external_games; este lo reemplaza.
         """
         ingested_at = datetime.now(timezone.utc).isoformat()
 
@@ -75,17 +76,19 @@ class IgdbClient:
             batch = appids[start : start + batch_size]
             uid_list = ",".join(f'"{appid}"' for appid in batch)
             body = (
-                "fields game.id, game.name, game.slug, game.first_release_date, "
+                "fields uid, game.name, game.slug, game.first_release_date, "
                 "game.total_rating, game.total_rating_count, game.genres.name, "
-                "game.involved_companies.company.name, game.involved_companies.developer, "
-                "game.involved_companies.publisher, uid; "
-                f"where category = 1 & uid = ({uid_list}); "
+                "game.involved_companies.company.name, "
+                "game.involved_companies.developer, "
+                "game.involved_companies.publisher; "
+                f"where external_game_source = 1 & uid = ({uid_list}); "
                 f"limit {PAGE_SIZE};"
             )
             for row in self.query("external_games", body):
                 game = row.get("game") or {}
                 if not game:
                     continue
+                companies = game.get("involved_companies", [])
                 yield {
                     "steam_appid": int(row["uid"]),
                     "igdb_id": game.get("id"),
@@ -97,13 +100,13 @@ class IgdbClient:
                     "genres": [g["name"] for g in game.get("genres", [])],
                     "developers": [
                         c["company"]["name"]
-                        for c in game.get("involved_companies", [])
-                        if c.get("developer")
+                        for c in companies
+                        if c.get("developer") and c.get("company")
                     ],
                     "publishers": [
                         c["company"]["name"]
-                        for c in game.get("involved_companies", [])
-                        if c.get("publisher")
+                        for c in companies
+                        if c.get("publisher") and c.get("company")
                     ],
                     "_ingested_at": ingested_at,
                 }
