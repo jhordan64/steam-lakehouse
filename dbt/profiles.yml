@@ -1,0 +1,22 @@
+# Copiar a ~/.dbt/profiles.yml (o dejarlo aqui y usar DBT_PROFILES_DIR=.)
+# Nunca commitear credenciales: todo sale de variables de entorno.
+steam_lakehouse:
+  target: dev
+  outputs:
+    dev:
+      type: databricks
+      host: "{{ env_var('DATABRICKS_HOST') | replace('https://', '') }}"
+      http_path: "/sql/1.0/warehouses/4e44871bc6fa37bf"
+      token: "{{ env_var('DATABRICKS_TOKEN') }}"
+      catalog: "{{ env_var('DATABRICKS_CATALOG', 'steam_lakehouse') }}"
+      schema: dbt_dev
+      threads: 4
+
+    prod:
+      type: databricks
+      host: "{{ env_var('DATABRICKS_HOST') | replace('https://', '') }}"
+      http_path: "/sql/1.0/warehouses/4e44871bc6fa37bf"
+      token: "{{ env_var('DATABRICKS_TOKEN') }}"
+      catalog: "{{ env_var('DATABRICKS_CATALOG', 'steam_lakehouse') }}"
+      schema: main
+      threads: 4
