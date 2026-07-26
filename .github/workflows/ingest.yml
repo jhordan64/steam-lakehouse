@@ -3,7 +3,7 @@ name: Ingesta
 on:
   schedule:
     # Cada hora en punto: la señal fina de jugadores concurrentes.
-    - cron: "5 * * * *"
+    - cron: "5 */6 * * *"    # cada 6 horas
     # Una vez al dia: catalogo, reseñas y metadata de IGDB.
     - cron: "20 3 * * *"
   workflow_dispatch:
