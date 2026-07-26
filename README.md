@@ -7,6 +7,10 @@
 ![Tests](https://img.shields.io/badge/dbt_tests-68_passing-brightgreen)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 
+## 🏗️ Arquitectura
+
+![Arquitectura del pipeline](docs/arquitectura.png)
+
 📚 **[Documentación interactiva del modelo de datos](https://jhordan64.github.io/steam-lakehouse/)** — grafo de linaje, columnas y tests, generada con dbt docs.
 
 Pipeline de datos **end-to-end** que ingesta la actividad de jugadores de Steam cada hora, la procesa con una arquitectura **medallion** sobre Databricks y la expone lista para analítica. Construido íntegramente con **cuentas gratuitas** y **APIs oficiales**.
