@@ -1,5 +1,12 @@
 # 🎮 Steam Lakehouse — Pipeline analítico de actividad de videojuegos
 
+![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
+![Databricks](https://img.shields.io/badge/Databricks-Delta_Lake-FF3621?logo=databricks&logoColor=white)
+![dbt](https://img.shields.io/badge/dbt-Core-FF694B?logo=dbt&logoColor=white)
+![Apache Airflow](https://img.shields.io/badge/Airflow-3-017CEE?logo=apacheairflow&logoColor=white)
+![Tests](https://img.shields.io/badge/dbt_tests-68_passing-brightgreen)
+![License](https://img.shields.io/badge/License-MIT-blue)
+
 Pipeline de datos **end-to-end** que ingesta la actividad de jugadores de Steam cada hora, la procesa con una arquitectura **medallion** sobre Databricks y la expone lista para analítica. Construido íntegramente con **cuentas gratuitas** y **APIs oficiales**.
 
 ![dbt lineage](docs/lineage_graph.png)
