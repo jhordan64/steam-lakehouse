@@ -14,6 +14,14 @@ Pipeline de datos **end-to-end** que ingesta la actividad de jugadores de Steam 
 ![dbt lineage](docs/lineage_graph.png)
 <!-- Reemplaza esta imagen por tu screenshot del grafo de linaje de dbt docs -->
 
+## 📊 Dashboard
+
+![Dashboard Steam Publisher Intelligence](docs/dashboard.png)
+
+Dashboard interactivo en Power BI con análisis por empresa: KPIs, ranking de jugadores por publisher, scatter de calidad (crítica IGDB vs jugadores Steam) y tabla detalle con indicadores de reseñas.
+
+Guarda con Ctrl + S.
+
 ---
 
 ## 📌 Resumen
