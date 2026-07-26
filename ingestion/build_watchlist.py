@@ -21,7 +21,9 @@ from .http_client import ApiClient
 
 load_dotenv()
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s"
+)
 logger = logging.getLogger("build_watchlist")
 
 WATCHLIST_PATH = Path(__file__).resolve().parent / "watchlist.json"

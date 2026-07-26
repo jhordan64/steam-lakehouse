@@ -99,9 +99,7 @@ class ApiClient:
         response = self._client.request(method, url, **kwargs)
 
         if response.status_code in RETRYABLE_STATUS:
-            raise RetryableHTTPError(
-                f"{method} {url} -> {response.status_code}"
-            )
+            raise RetryableHTTPError(f"{method} {url} -> {response.status_code}")
 
         response.raise_for_status()
 

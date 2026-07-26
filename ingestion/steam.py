@@ -59,9 +59,7 @@ class SteamClient:
             if last_appid is not None:
                 params["last_appid"] = last_appid
 
-            payload = self._web.get(
-                "/IStoreService/GetAppList/v1/", params=params
-            )
+            payload = self._web.get("/IStoreService/GetAppList/v1/", params=params)
             response = payload.get("response", {})
             page = response.get("apps", [])
 
@@ -74,7 +72,9 @@ class SteamClient:
                     }
                 )
 
-            logger.info("GetAppList: pagina de %s apps (total %s)", len(page), len(apps))
+            logger.info(
+                "GetAppList: pagina de %s apps (total %s)", len(page), len(apps)
+            )
 
             # Si hay mas resultados, la API devuelve have_more_results y el
             # ultimo appid procesado, que usamos como puntero de la siguiente pagina.
