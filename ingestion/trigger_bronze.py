@@ -82,9 +82,7 @@ def wait_for_run(run_id: int) -> None:
             if result == "SUCCESS":
                 logger.info("Bronze completado con exito")
                 return
-            raise RuntimeError(
-                f"Bronze fallo: life_cycle={life_cycle} result={result}"
-            )
+            raise RuntimeError(f"Bronze fallo: life_cycle={life_cycle} result={result}")
 
         time.sleep(POLL_SECONDS)
 
