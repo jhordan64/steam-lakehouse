@@ -2,8 +2,8 @@ name: Ingesta
 
 on:
   schedule:
-    # Cada hora en punto: la señal fina de jugadores concurrentes.
-    - cron: "5 */6 * * *"    # cada 6 horas
+    # Cada 6 horas: la señal de jugadores concurrentes.
+    - cron: "5 */6 * * *"
     # Una vez al dia: catalogo, reseñas y metadata de IGDB.
     - cron: "20 3 * * *"
   workflow_dispatch:
@@ -26,14 +26,17 @@ permissions:
 jobs:
   ingest:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     env:
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      DATABRICKS_HTTP_PATH: ${{ secrets.DATABRICKS_HTTP_PATH }}
       DATABRICKS_CATALOG: ${{ vars.DATABRICKS_CATALOG }}
+      DATABRICKS_BRONZE_JOB_ID: ${{ vars.DATABRICKS_BRONZE_JOB_ID }}
       IGDB_CLIENT_ID: ${{ secrets.IGDB_CLIENT_ID }}
       IGDB_CLIENT_SECRET: ${{ secrets.IGDB_CLIENT_SECRET }}
+      STEAM_API_KEY: ${{ secrets.STEAM_API_KEY }}
       INGEST_USER_AGENT: ${{ vars.INGEST_USER_AGENT }}
 
     steps:
@@ -47,11 +50,13 @@ jobs:
       - name: Instalar dependencias
         run: pip install -r requirements.txt
 
-      - name: Ingesta horaria
-        if: github.event.schedule == '5 * * * *'
+      # ---- 1. EXTRACCION ----
+
+      - name: Ingesta cada 6 horas (jugadores)
+        if: github.event.schedule == '5 */6 * * *'
         run: python -m ingestion.run_ingest player_counts
 
-      - name: Ingesta diaria
+      - name: Ingesta diaria (catalogo, reseñas, igdb)
         if: github.event.schedule == '20 3 * * *'
         run: |
           python -m ingestion.run_ingest app_list
@@ -61,3 +66,25 @@ jobs:
       - name: Ingesta manual
         if: github.event_name == 'workflow_dispatch'
         run: python -m ingestion.run_ingest ${{ inputs.source }}
+
+      # ---- 2. BRONZE (Job de Databricks via API) ----
+
+      - name: Procesar Bronze en Databricks
+        run: python -m ingestion.trigger_bronze
+
+      # ---- 3. SILVER + GOLD (dbt) ----
+
+      - name: Preparar profiles de dbt
+        run: cp dbt/profiles.yml.example dbt/profiles.yml
+
+      - name: dbt deps
+        working-directory: dbt
+        env:
+          DBT_PROFILES_DIR: .
+        run: dbt deps
+
+      - name: dbt build
+        working-directory: dbt
+        env:
+          DBT_PROFILES_DIR: .
+        run: dbt build --target dev
