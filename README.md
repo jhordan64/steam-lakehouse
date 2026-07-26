@@ -20,8 +20,6 @@ Pipeline de datos **end-to-end** que ingesta la actividad de jugadores de Steam 
 
 Dashboard interactivo en Power BI con análisis por empresa: KPIs, ranking de jugadores por publisher, scatter de calidad (crítica IGDB vs jugadores Steam) y tabla detalle con indicadores de reseñas.
 
-Guarda con Ctrl + S.
-
 ---
 
 ## 📌 Resumen
